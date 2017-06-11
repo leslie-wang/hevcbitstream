@@ -1,0 +1,45 @@
+VERSION = 0.2.0
+
+INCLUDES = 
+LIBS = 
+
+CC = gcc
+CFLAGS += -std=c99 -pedantic -Wall -W -Wshadow -Wwrite-strings -Wno-unused -g $(INCLUDES)
+
+LD = gcc
+LDFLAGS += $(LIBS)
+
+AR = ar
+ARFLAGS = rsc
+
+BINARIES = hevc_analyze
+
+all: libhevcbitstream.a $(BINARIES)
+
+hevc_stream.c: hevc_stream.in.c process.pl
+	perl process.pl > hevc_stream.c < hevc_stream.in.c
+
+hevc_analyze: hevc_analyze.o libhevcbitstream.a
+	$(LD) $(LDFLAGS) -o hevc_analyze hevc_analyze.o -L. -lhevcbitstream -lm
+
+libhevcbitstream.a: hevc_stream.c h264_stream.c hevc_nal.c h264_nal.c hevc_stream.h h264_sei.c h264_sei.h 
+	$(CC) $(CFLAGS) -c -o h264_nal.o h264_nal.c
+	$(CC) $(CFLAGS) -c -o hevc_nal.o hevc_nal.c
+	$(CC) $(CFLAGS) -c -o h264_stream.o h264_stream.c
+	$(CC) $(CFLAGS) -c -o hevc_stream.o hevc_stream.c
+	$(CC) $(CFLAGS) -c -o h264_sei.o h264_sei.c
+	$(AR) $(ARFLAGS) libhevcbitstream.a hevc_stream.o hevc_nal.o h264_sei.o  
+
+
+clean:
+	rm -f *.o libhevcbitstream.a $(BINARIES)
+
+dox: hevc_stream.c hevc_stream.h bs.h Doxyfile
+	doxygen Doxyfile
+
+dist: clean
+	mkdir hevcbitstream-$(VERSION)
+	tar c --files-from=MANIFEST -f tmp.tar ; cd hevcbitstream-$(VERSION) ; tar xf ../tmp.tar ; rm -f ../tmp.tar
+	tar czf ../hevcbitstream-$(VERSION).tar.gz hevcbitstream-$(VERSION)
+	rm -rf hevcbitstream-$(VERSION)
+
