@@ -40,15 +40,21 @@ static int getNumPicTotalCurr(hevc_sps_t* sps, hevc_slice_header_t* sh)
     
     if( sh->short_term_ref_pic_set_sps_flag )
         CurrRpsIdx = sh->short_term_ref_pic_set_idx;
-    for( i = 0; i < sh->st_ref_pic_set[ CurrRpsIdx ]; i++ )
+    for( i = 0; i < NumNegativePics[ CurrRpsIdx ]; i++ )
         if( UsedByCurrPicS0[ CurrRpsIdx ][ i ] ) 
-            NumPicTotalCurr++
+            NumPicTotalCurr++;
     for( i = 0; i < NumPositivePics[ CurrRpsIdx ]; i++) 
         if( UsedByCurrPicS1[ CurrRpsIdx ][ i ] )
-            NumPicTotalCurr++
-    for( i = 0; i < sh->num_long_term_sps + sh->num_long_term_pics; i++ )
-        if( UsedByCurrPicLt[ i ] ) 
-            NumPicTotalCurr++
+            NumPicTotalCurr++;
+    for( i = 0; i < sh->num_long_term_sps + sh->num_long_term_pics; i++ ) {
+        int UsedByCurrPicLt = 0;
+        if( i < sh->num_long_term_sps )
+            UsedByCurrPicLt = sps->used_by_curr_pic_lt_sps_flag[ sh->lt_idx_sps[ i ] ];
+        else
+            UsedByCurrPicLt = sh->used_by_curr_pic_lt_flag[ i ];
+        if( UsedByCurrPicLt ) 
+            NumPicTotalCurr++;
+    }
     return NumPicTotalCurr;
 }
 

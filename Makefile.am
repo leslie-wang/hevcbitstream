@@ -14,8 +14,8 @@ libhevcbitstream_la_SOURCES = hevc_stream.c h264_stream.c h264_sei.c hevc_nal.c 
 hevc_analyze_SOURCES = hevc_analyze.c
 hevc_analyze_LDADD = libhevcbitstream.la
 
-include_HEADERS = hevc_stream.h hevc_sei.h 
-pkginclude_HEADERS = hevc_stream.h hevc_sei.h bs.h
+include_HEADERS = hevc_stream.h 
+pkginclude_HEADERS = hevc_stream.h h264_stream.h h264_sei.h bs.h
 
 clean-local:
 	rm -rf *.pc
