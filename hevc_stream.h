@@ -525,8 +525,8 @@ typedef struct
 {
     int forbidden_zero_bit;
     int nal_unit_type;
-    int nuh_layer_id;
-    int nuh_temporal_id_plus1;
+    int nal_layer_id;
+    int nal_temporal_id_plus1;
 } hevc_nal_t;
 
 typedef struct
@@ -635,6 +635,18 @@ void hevc_free(hevc_stream_t* h);
 // file handle for debug output
 extern FILE* h264_dbgfile;
 
+static inline long decimal_to_binary(int n) {
+    int remainder;
+    long binary = 0, i = 1;
+        
+    while(n != 0) {
+        remainder = n%2;
+        n = n/2;
+        binary= binary + (remainder*i);
+        i = i*10;
+    }
+    return binary;
+}
 #ifdef __cplusplus
 }
 #endif

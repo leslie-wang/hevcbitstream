@@ -59,6 +59,13 @@ $code_read_debug =~ s{is_reading}{1}g;
 $code_read_debug =~ s{is_writing}{0}g;
 print $code_read_debug;
 
+$code_write_debug = $code;
+$code_write_debug =~ s{^(\s*) value \s* \( \s* ([^,]*) , (.*) \);}{ &proc_value_write_debug($2, $3, $1) }exmg;
+$code_write_debug =~ s{structure\( (\w+) \)}{write_debug_$1}xg;
+$code_write_debug =~ s{is_reading}{0}g;
+$code_write_debug =~ s{is_writing}{1}g;
+print $code_write_debug;
+
 sub proc_value_read
 {
     my ($s, $values, $indent) = @_;
@@ -125,3 +132,35 @@ sub proc_value_write
 
     return $indent . $code;
 }
+
+
+sub proc_value_write_debug
+{
+    my ($s, $values, $indent) = @_;
+    $values =~ s{^\s*}{};
+    $values =~ s{\s*$}{};
+
+    my $code;
+    if ($values =~ m{u\((.*)\)}) { $code = "bs_write_u(b, $1, $s);"; }
+    elsif ($values =~ m{f\((\d+),\s*(.*)\)}) { $code = "int $s = $1;  bs_write_u(b, $s, $2);"; }
+    elsif ($values =~ m{(ue|se|ce|te|me|u8|u1)}) { $code = "bs_write_$1(b, $s);"; }
+    elsif ($values eq 'ae') { 
+        my $s_name =  &extract_value_name($s);
+        $code = "bs_write_ae(h, b, $s, $s_name);";
+    }
+    else { $code = "// ERROR: value( $s, $values );"; }
+
+    if ($values =~ m{ae} && $values ne 'ae')
+    {
+        my $s_name =  &extract_value_name($s);
+        $code = "\n${indent}" . "if (h->pps->entropy_coding_mode_flag) {" . "\n${indent}" . "    bs_write_ae(h, b, $s, $s_name);" . "\n${indent}" . "} else {" . "\n${indent}" . "$code" . "\n${indent}" . "}" . "\n${indent}";
+    }
+    
+    $code = "printf(\"\%d.\%d: \", b->p - b->start, b->bits_left); " . "\n${indent}" .
+        $code . "\n${indent}" .
+        "printf(\"$s: \%d ( %ld )\\n\", $s, decimal_to_binary( $s )); ";
+
+
+    return $indent . $code;
+}
+

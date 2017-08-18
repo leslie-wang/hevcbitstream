@@ -102,8 +102,8 @@ int peek_hevc_nal_unit(hevc_stream_t* h, uint8_t* buf, int size)
 
     /* forbidden_zero_bit */ bs_skip_u(b, 1);
     nal->nal_unit_type = bs_read_u(b, 6);
-    nal->nuh_layer_id = bs_read_u(b, 6);
-    nal->nuh_temporal_id_plus1 = bs_read_u(b, 3);
+    nal->nal_layer_id = bs_read_u(b, 6);
+    nal->nal_temporal_id_plus1 = bs_read_u(b, 3);
 
     bs_free(b);
 

@@ -40,15 +40,21 @@ static int getNumPicTotalCurr(hevc_sps_t* sps, hevc_slice_header_t* sh)
     
     if( sh->short_term_ref_pic_set_sps_flag )
         CurrRpsIdx = sh->short_term_ref_pic_set_idx;
-    for( i = 0; i < sh->st_ref_pic_set[ CurrRpsIdx ]; i++ )
+    for( i = 0; i < NumNegativePics[ CurrRpsIdx ]; i++ )
         if( UsedByCurrPicS0[ CurrRpsIdx ][ i ] ) 
-            NumPicTotalCurr++
+            NumPicTotalCurr++;
     for( i = 0; i < NumPositivePics[ CurrRpsIdx ]; i++) 
         if( UsedByCurrPicS1[ CurrRpsIdx ][ i ] )
-            NumPicTotalCurr++
-    for( i = 0; i < sh->num_long_term_sps + sh->num_long_term_pics; i++ )
-        if( UsedByCurrPicLt[ i ] ) 
-            NumPicTotalCurr++
+            NumPicTotalCurr++;
+    for( i = 0; i < sh->num_long_term_sps + sh->num_long_term_pics; i++ ) {
+        int UsedByCurrPicLt = 0;
+        if( i < sh->num_long_term_sps )
+            UsedByCurrPicLt = sps->used_by_curr_pic_lt_sps_flag[ sh->lt_idx_sps[ i ] ];
+        else
+            UsedByCurrPicLt = sh->used_by_curr_pic_lt_flag[ i ];
+        if( UsedByCurrPicLt ) 
+            NumPicTotalCurr++;
+    }
     return NumPicTotalCurr;
 }
 
@@ -145,8 +151,8 @@ int structure(hevc_nal_unit)(hevc_stream_t* h, uint8_t* buf, int size)
     bs_t* b = bs_new(rbsp_buf, rbsp_size);
     value( forbidden_zero_bit, f(1, 0) );
     value( nal->nal_unit_type, u(6) );
-    value( nal->nuh_layer_id,  u(6) );
-    value( nal->nuh_temporal_id_plus1, u(3) );
+    value( nal->nal_layer_id,  u(6) );
+    value( nal->nal_temporal_id_plus1, u(3) );
 
     switch ( nal->nal_unit_type )
     {
@@ -226,7 +232,7 @@ void structure(hevc_video_parameter_set_rbsp)(hevc_stream_t* h, bs_t* b)
     value( vps->vps_max_layers_minus1,                    u(6) );
     value( vps->vps_max_sub_layers_minus1,                u(3) );
     value( vps->vps_temporal_id_nesting_flag,             u1 );
-    value( vps_reserved_0xffff_16bits,                    f(16, 0) );
+    value( vps_reserved_0xffff_16bits,                    f(16, 0xffff) );
     
     structure(hevc_profile_tier_level)(&vps->ptl, b, 1, vps->vps_max_sub_layers_minus1); 
     
@@ -783,7 +789,7 @@ void structure(hevc_slice_header)(hevc_stream_t* h, bs_t* b)
     
     if( !sh->dependent_slice_segment_flag ) {
         for( i = 0; i < pps->num_extra_slice_header_bits; i++ ) {
-            value( slice_reserved_flag,                              f(1, 0) );
+            value( slice_reserved_flag,                              f(1, 1) );
         }
         value( sh->slice_type, ue );
         if( pps->output_flag_present_flag ) {
@@ -1017,8 +1023,9 @@ void structure(hevc_st_ref_pic_set)( hevc_st_ref_pic_set_t *st_ref_pic_set, bs_t
         
         for( j = 0; j <= NumDeltaPocs[ RefRpsIdx ]; j++ ) {
             value( st_ref_pic_set->used_by_curr_pic_flag[ j ],        u1 );
-            if( !st_ref_pic_set->used_by_curr_pic_flag[ j ] )
+            if( !st_ref_pic_set->used_by_curr_pic_flag[ j ] ) {
                 value( st_ref_pic_set->use_delta_flag[ j ],           u1 );
+            }
         }
     } else {
         value( st_ref_pic_set->num_negative_pics,                     ue );

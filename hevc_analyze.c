@@ -187,6 +187,21 @@ int main(int argc, char *argv[])
 
             p = buf + sz;
             sz = 0;
+        } else {
+            //print last NAL
+            if ( opt_verbose > 0 )
+            {
+               fprintf( h264_dbgfile, "!! Found NAL at offset %lld (0x%04llX), size %lld (0x%04llX) \n",
+                      (long long int)(off + (p - buf) + nal_start),
+                      (long long int)(off + (p - buf) + nal_start),
+                      (long long int)(nal_end - nal_start),
+                      (long long int)(nal_end - nal_start) );
+                
+                debug_bytes(p-4, nal_end - nal_start + 4 >= 16 ? 16: nal_end - nal_start + 4);
+            }
+
+            p += nal_start;
+            read_debug_hevc_nal_unit(h, p, nal_end - nal_start);
         }
 
         memmove(buf, p, sz);

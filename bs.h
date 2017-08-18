@@ -56,6 +56,7 @@ static uint32_t bs_byte_aligned(bs_t* b);
 static int bs_eof(bs_t* b);
 static int bs_overrun(bs_t* b);
 static int bs_pos(bs_t* b);
+static int bs_pos_out(bs_t* b); //this is to get actual length even if p is larger than end
 
 static uint32_t bs_peek_u1(bs_t* b);
 static uint32_t bs_read_u1(bs_t* b);
@@ -118,6 +119,7 @@ static inline int bs_eof(bs_t* b) { if (b->p >= b->end) { return 1; } else { ret
 static inline int bs_overrun(bs_t* b) { if (b->p > b->end) { return 1; } else { return 0; } }
 
 static inline int bs_pos(bs_t* b) { if (b->p > b->end) { return (b->end - b->start); } else { return (b->p - b->start); } }
+static inline int bs_pos_out(bs_t* b) { return (b->p - b->start); }
 
 static inline int bs_bytes_left(bs_t* b) { return (b->end - b->p); }
 
