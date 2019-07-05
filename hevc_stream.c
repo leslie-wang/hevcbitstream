@@ -4425,7 +4425,7 @@ void write_debug_hevc_profile_tier_level(hevc_profile_tier_level_t* ptl, bs_t* b
             }
             if( ptl->sub_layer_level_present_flag[ i ] ) {
                 printf("%d.%d: ", b->p - b->start, b->bits_left); 
-                bs_write_u1(b, ptl->sub_layer_level_idc[ i ]);
+                bs_write_u8(b, ptl->sub_layer_level_idc[ i ]);
                 printf("ptl->sub_layer_level_idc[ i ]: %d ( %ld )\n", ptl->sub_layer_level_idc[ i ], decimal_to_binary( ptl->sub_layer_level_idc[ i ] )); 
             }
         }
