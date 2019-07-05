@@ -724,7 +724,7 @@ void structure(hevc_profile_tier_level)(hevc_profile_tier_level_t* ptl, bs_t* b,
                 }
             }
             if( ptl->sub_layer_level_present_flag[ i ] ) {
-                value( ptl->sub_layer_level_idc[ i ],                               u1 );
+                value( ptl->sub_layer_level_idc[ i ],                               u8 );
             }
         }
     }
