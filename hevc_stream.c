@@ -748,7 +748,7 @@ void read_hevc_profile_tier_level(hevc_profile_tier_level_t* ptl, bs_t* b, int p
                 }
             }
             if( ptl->sub_layer_level_present_flag[ i ] ) {
-                ptl->sub_layer_level_idc[ i ] = bs_read_u1(b);
+                ptl->sub_layer_level_idc[ i ] = bs_read_u8(b);
             }
         }
     }
